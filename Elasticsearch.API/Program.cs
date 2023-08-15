@@ -12,6 +12,11 @@ builder.Services.AddSwaggerGen();
 //api service registrations
 builder.Services.AddAPIServices(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", b => b.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+});
+
 var app = builder.Build();
 
 
@@ -24,6 +29,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Allow all CORS
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 

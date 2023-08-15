@@ -10,7 +10,7 @@ namespace Elasticsearch.API.DTOs
 
         public HttpStatusCode StatusCode { get; set; }
 
-        public static ResponseDTO<T> Succes(T data, HttpStatusCode statusCode)
+        public static ResponseDTO<T> Success(T data, HttpStatusCode statusCode)
         {
             return new ResponseDTO<T> { Data = data, StatusCode = statusCode };
         }
@@ -18,6 +18,11 @@ namespace Elasticsearch.API.DTOs
         public static ResponseDTO<T> Fail(List<string> errors, HttpStatusCode statusCode)
         {
             return new ResponseDTO<T> { StatusCode = statusCode, Errors = errors };
+        }
+
+        public static ResponseDTO<T> Fail(string error, HttpStatusCode statusCode)
+        {
+            return new ResponseDTO<T> { Errors = new List<string> { error }, StatusCode = statusCode };
         }
     }
 }

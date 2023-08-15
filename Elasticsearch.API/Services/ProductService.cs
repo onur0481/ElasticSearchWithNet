@@ -1,7 +1,6 @@
-﻿using Elasticsearch.API.DTOs;
-using Elasticsearch.API.Models;
+﻿using Elastic.Clients.Elasticsearch;
+using Elasticsearch.API.DTOs;
 using Elasticsearch.API.Repositories;
-using Nest;
 using System.Net;
 
 namespace Elasticsearch.API.Services
@@ -9,8 +8,8 @@ namespace Elasticsearch.API.Services
     public class ProductService
     {
         private readonly ProductRepository _repository;
-        private readonly ILogger _logger;
-        public ProductService(ProductRepository repository, ILogger logger)
+        private readonly ILogger<ProductService> _logger;
+        public ProductService(ProductRepository repository, ILogger<ProductService> logger)
         {
             _repository = repository;
             _logger = logger;
@@ -41,9 +40,9 @@ namespace Elasticsearch.API.Services
 
                     continue;
                 }
-               
-                    productListDto.Add(new ProductDTO(x.Id, x.Name, x.Price, x.Stock, new ProductFeatureDTO(x.Feature.Width, x.Feature.Height, x.Feature.Color.ToString())));
-                
+
+                productListDto.Add(new ProductDTO(x.Id, x.Name, x.Price, x.Stock, new ProductFeatureDTO(x.Feature.Width, x.Feature.Height, x.Feature.Color.ToString())));
+
             }
 
             return ResponseDTO<List<ProductDTO>>.Success(productListDto, HttpStatusCode.OK);
@@ -64,7 +63,7 @@ namespace Elasticsearch.API.Services
         {
             var isSuccess = await _repository.UpdateAsync(productUpdateDTO);
 
-            if(!isSuccess) return ResponseDTO<bool>.Fail("ürün güncellenemedi", HttpStatusCode.BadRequest);
+            if (!isSuccess) return ResponseDTO<bool>.Fail("ürün güncellenemedi", HttpStatusCode.BadRequest);
 
             return ResponseDTO<bool>.Success(true, HttpStatusCode.NoContent);
         }
@@ -73,11 +72,12 @@ namespace Elasticsearch.API.Services
         {
             var deleteResponse = await _repository.DeleteAsync(id);
 
-            if(!deleteResponse.IsValid && deleteResponse.Result == Result.NotFound) return ResponseDTO<bool>.Fail("ürün bulunamadı", HttpStatusCode.NotFound);
+            if (!deleteResponse.IsValidResponse && deleteResponse.Result == Result.NotFound) return ResponseDTO<bool>.Fail("ürün bulunamadı", HttpStatusCode.NotFound);
 
-            if(!deleteResponse.IsValid)
+            if (!deleteResponse.IsValidResponse)
             {
-                _logger.LogError(deleteResponse.OriginalException, deleteResponse.ServerError.ToString());
+                deleteResponse.TryGetOriginalException(out Exception? exception);
+                _logger.LogError(exception, deleteResponse?.ElasticsearchServerError?.Error.ToString());
 
                 return ResponseDTO<bool>.Fail("ürün silinemedi", HttpStatusCode.InternalServerError);
             }

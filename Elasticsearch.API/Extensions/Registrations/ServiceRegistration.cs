@@ -1,7 +1,7 @@
-﻿using Elasticsearch.API.Repositories;
+﻿using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
+using Elasticsearch.API.Repositories;
 using Elasticsearch.API.Services;
-using Elasticsearch.Net;
-using Nest;
 
 namespace Elasticsearch.API.Extensions.Registrations
 {
@@ -9,15 +9,18 @@ namespace Elasticsearch.API.Extensions.Registrations
     {
         public static void AddAPIServices(this IServiceCollection services, IConfiguration configuration)
         {
-            var pool = new SingleNodeConnectionPool(new Uri(configuration.GetSection("Elastic")["Url"]!));
+            var userName = configuration.GetSection("Elastic")["Username"];
+            var password = configuration.GetSection("Elastic")["Password"];
 
-            var settings = new ConnectionSettings(pool);
-            var client = new ElasticClient(settings);
+            var settings = new ElasticsearchClientSettings(new Uri(configuration.GetSection("Elastic")["Url"]!)).Authentication(new BasicAuthentication(userName!, password!));
+
+            var client = new ElasticsearchClient(settings);
 
             services.AddSingleton(client);
 
             services.AddScoped<ProductService>();
             services.AddScoped<ProductRepository>();
+            services.AddScoped<EcomerceRepository>();
         }
     }
 }

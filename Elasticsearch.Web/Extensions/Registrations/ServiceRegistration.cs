@@ -20,6 +20,8 @@ namespace Elasticsearch.Web.Extensions.Registrations
 
             services.AddScoped<BlogRepository>();
             services.AddScoped<BlogService>();
+            services.AddScoped<EcommerceRepository>();
+            services.AddScoped<EcommerceService>();
         }
     }
 }
